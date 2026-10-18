@@ -1,4 +1,4 @@
-name: Build and deploy to GitHub Pages
+name: Deploy Vite build to GitHub Pages
 
 on:
   push:
@@ -11,32 +11,39 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: github-pages
   cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Check out repository
         uses: actions/checkout@v4
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
+          cache: npm
+
       - name: Install dependencies
         run: npm install --no-audit --no-fund
-      - name: Build site
+
+      - name: Build Vite application
         run: npm run build
         env:
           VITE_VAPI_PUBLIC_KEY: ${{ vars.VITE_VAPI_PUBLIC_KEY }}
           VITE_VAPI_ASSISTANT_ID: ${{ vars.VITE_VAPI_ASSISTANT_ID }}
-      - name: Configure Pages
+
+      - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
-      - name: Upload artifact
+
+      - name: Upload compiled dist folder
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist
-      - name: Deploy
+
+      - name: Deploy compiled application
         id: deployment
         uses: actions/deploy-pages@v4
